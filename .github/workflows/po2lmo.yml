@@ -1,0 +1,35 @@
+name: po2lmo
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/po2lmo.yml'
+
+jobs:
+
+  i18n:
+
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          ref: master
+
+      - name: build
+        run: |
+          wget https://raw.githubusercontent.com/kongfl888/luci-app-dnsfilter/main/po/zh-cn/dnsfilter.po
+          mkdir -p ./i18n/
+          chmod +x ./po2lmo
+          ./po2lmo dnsfilter.po ./i18n/dnsfilter.zh-cn.lmo
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: i18n
+          path: ./i18n/

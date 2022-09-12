@@ -1,0 +1,50 @@
+name: Build3
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/test3.yml'
+      - 'files/**'
+      - 'Makefile'
+      - 'base_r2s.seed'
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          ref: master
+
+      - name: Initialization Environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo rm -rf /etc/apt/sources.list.d
+          sudo apt-get update
+          #sudo apt-get -y --no-install-recommends install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler
+          sudo apt-get install gcc-arm-linux-gnueabi
+          
+      - name: po2lmo
+        run: |
+          cd /tmp
+          git clone -b master --single-branch https://github.com/kongfl888/po2lmo.git
+      - name: Build
+        run: |
+          cd /tmp/po2lmo/src
+          arm-linux-gnueabi-gcc -static -c template_lmo.c
+          arm-linux-gnueabi-gcc -static -c po2lmo.c
+          arm-linux-gnueabi-gcc -static -o po2lmo po2lmo.o template_lmo.o
+      - name: Upload Artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: po2lmo
+          path: /tmp/po2lmo
